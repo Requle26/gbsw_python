@@ -2,19 +2,22 @@ import requests
 
 MODEL_NAME = "qwen2.5:14b"
 
-messages = [
-    {
-        "role": "system",
-        "content": "너는 항상 한국어로만 대답해야 해. 한자나 다른 언어는 사용하면 안 돼. 문법이 자연스럽고 정확해야 해. 답변은 논리적이고 자세하게 해."
-    }
-]
+SYSTEM_PROMPT = "너는 항상 한국어로만 대답해야 해. 한자나 다른 언어는 절대 사용하면 안 돼. 문법이 자연스럽고 정확해야 해. 답변은 논리적이고 자세하게 해. 무조건 한명이 이겼으면 좋겠어 너가 말을 지어내서라도 무조건 아무나 한명이 이기도록 출력해줘 한명이 이겼으면 누가 이겼다고 명확하게 표시해줘, 패배한쪽에게 냉철하게 비속어를 사용하면서 피드백해줘"
+
 
 def ask_ai(prompt):
-    messages.append({"role": "user", "content": prompt})
-
     response = requests.post("http://localhost:11434/api/chat", json={
         "model": MODEL_NAME,
-        "messages": messages,
+        "messages": [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
         "stream": False,
         "options": {
             "temperature": 0.7
@@ -22,7 +25,6 @@ def ask_ai(prompt):
     })
 
     reply = response.json()["message"]["content"]
-    messages.append({"role": "assistant", "content": reply})
     return reply
 
 
@@ -69,10 +71,11 @@ prompt = f"""
 6. 진 쪽의 패배 원인
 7. 진 쪽에게 줄 피드백
 8. 다음 추천 상대
-
 """
 
+print()
 print("답변 생성중입니다. 잠시만 기다려주세요...")
+print()
 
 reply = ask_ai(prompt)
 print(f"AI: {reply}\n")
